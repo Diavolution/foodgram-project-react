@@ -11,13 +11,13 @@ class UserRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class UserSerializer(UserCreateSerializer):
+class SignupUserSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = (
             'id', 'email', 'username', 'first_name', 'last_name', 'password'
         )
-        extra_kwargs = {'password': {'wrtie_only': True}}
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)

@@ -152,7 +152,7 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'SEND_ACTIVATION_EMIAL': False,
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UserSerializer',
+        'user_create': 'users.serializers.SignupUserSerializer',
         'user': 'users.serializers.ProfileSerializer',
         'current_user': 'users.serializers.ProfileSerializer',
     }
