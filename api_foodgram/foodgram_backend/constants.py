@@ -1,0 +1,5 @@
+NAME_MAX_LEN: int = 200
+MEAS_UNIT_MAX_LEN: int = 200
+HEX_LEN: int = 7
+SLUG_MAX_LEN: int = 200
+STR_MAX_LEN: int = 15
