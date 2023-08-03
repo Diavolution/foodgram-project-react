@@ -1,15 +1,7 @@
 import django_filters
+from rest_framework.filters import SearchFilter
 
-from foodgram_backend.models import Recipe
-
-
-class TagFilter(django_filters.Filter):
-    def filter(self, queryset, value):
-        if not value:
-            return queryset
-
-        tags = value.split(',')
-        return queryset.filter(tags__slug__in=tags).distinct()
+from recipes.models import Recipe, Tag
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -17,20 +9,30 @@ class RecipeFilter(django_filters.FilterSet):
     is_in_shopping_cart = django_filters.NumberFilter(
         method='filter_is_in_shopping_cart'
     )
-    tags = TagFilter(field_name='tags__slug', lookup_expr='icontains')
+    tags = django_filters.filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
+        lookup_expr='icontains',
+        conjoined=False
+    )
 
     class Meta:
         model = Recipe
         fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
 
     def filter_is_favorited(self, queryset, name, value):
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(favorited_by__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(
                 added_to_shopping_carts__user=self.request.user
             )
         return queryset
+
+
+class IngredientSearchFilter(SearchFilter):
+    search_param = 'name'

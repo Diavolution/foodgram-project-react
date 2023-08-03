@@ -13,12 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6sawmv@$q&@xbjixk(6-scii+81+-bgci8ekpt70sos#0nz)0w'
+SECRET_KEY = os.getenv('SECRET_KEY', default='django-insecure-6sawmv@$q&@xbjixk(6-scii+81+-bgci8ekpt70sos#0nz)0w')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -35,9 +35,9 @@ INSTALLED_APPS = [
     'djoser',
     'django_filters',
     'api',
-    'core',
-    'foodgram_backend',
+    'recipes',
     'users',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
@@ -108,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
@@ -143,17 +143,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 6,
 }
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SEND_ACTIVATION_EMIAL': False,
     'SERIALIZERS': {
-        'user_create': 'users.serializers.SignupUserSerializer',
-        'user': 'users.serializers.ProfileSerializer',
-        'current_user': 'users.serializers.ProfileSerializer',
-    }
+        'user_create': 'api.serializers.SignupUserSerializer',
+        'user': 'api.serializers.ProfileSerializer',
+        'current_user': 'api.serializers.ProfileSerializer',
+    },
+    'HIDE_USERS': False
 }

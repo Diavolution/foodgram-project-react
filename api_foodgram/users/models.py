@@ -4,11 +4,12 @@ from django.db import models
 from django.db.models import F, Q
 
 from users.constants import EMAIL_MAX_LEN, NAME_MAX_LEN
-
-unique_username_validator = [UnicodeUsernameValidator()]
+from users.validators import unavailable_usernames_validator
 
 
 class User(AbstractUser):
+    unicode_username_validator = UnicodeUsernameValidator
+
     email = models.EmailField(
         max_length=EMAIL_MAX_LEN,
         unique=True,
@@ -18,7 +19,10 @@ class User(AbstractUser):
         max_length=NAME_MAX_LEN,
         unique=True,
         verbose_name='Имя пользователя',
-        validators=unique_username_validator
+        validators=(
+            unicode_username_validator,
+            unavailable_usernames_validator
+        )
     )
     first_name = models.CharField(
         max_length=NAME_MAX_LEN,
@@ -28,9 +32,14 @@ class User(AbstractUser):
         max_length=NAME_MAX_LEN,
         verbose_name='Фамилия'
     )
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
@@ -53,13 +62,14 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка на автора'
         verbose_name_plural = 'Подписки на авторов'
-        constraints = [
+        ordering = ['-id']
+        constraints = (
             models.UniqueConstraint(
                 name='check_unable_to_subscribe_more_than_once',
-                fields=['user', 'author']
+                fields=('user', 'author')
             ),
             models.CheckConstraint(
                 name='check_unable_to_self_subscribe',
                 check=~Q(user=F('author'))
             ),
-        ]
+        )
