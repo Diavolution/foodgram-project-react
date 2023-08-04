@@ -8,7 +8,7 @@ from users.validators import unavailable_usernames_validator
 
 
 class User(AbstractUser):
-    unicode_username_validator = UnicodeUsernameValidator
+    unicode_username_validator = UnicodeUsernameValidator()
 
     email = models.EmailField(
         max_length=EMAIL_MAX_LEN,
@@ -32,12 +32,11 @@ class User(AbstractUser):
         max_length=NAME_MAX_LEN,
         verbose_name='Фамилия'
     )
-    is_admin = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
 
     class Meta:
-        ordering = ['id']
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -62,7 +61,7 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка на автора'
         verbose_name_plural = 'Подписки на авторов'
-        ordering = ['-id']
+        ordering = ('-id',)
         constraints = (
             models.UniqueConstraint(
                 name='check_unable_to_subscribe_more_than_once',

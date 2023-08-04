@@ -153,5 +153,8 @@ DJOSER = {
         'user': 'api.serializers.ProfileSerializer',
         'current_user': 'api.serializers.ProfileSerializer',
     },
-    'HIDE_USERS': False
+    'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user_list': ('rest_framework.permissions.AllowAny')
+    }
 }

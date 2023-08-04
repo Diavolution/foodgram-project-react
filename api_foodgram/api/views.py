@@ -63,8 +63,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_instance(model, request, pk):
         model_instance = model.objects.filter(user=request.user.id, recipe=pk)
 
-        if model_instance.exists():
-            model_instance.delete()
+        deleted = model_instance.delete()[0]
+        if deleted:
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
             {'errors': 'Объекта для удаления не существует'},
@@ -95,6 +95,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_instance(ShoppingCart, request, pk)
 
+    def create_shopping_cart_file(self, shopping_cart):
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="shopping_cart.txt"')
+
+        for item, amount in shopping_cart.items():
+            response.write(f'{item}, - {amount}\n')
+
+        return response
+
     @action(
         detail=False,
         methods=['get'],
@@ -106,7 +116,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ).annotate(amount=Sum('amount')).order_by('ingredient__name')
 
         shopping_cart = {}
         for ingredient in ingredients:
@@ -116,14 +126,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
             shopping_cart[item] = ingredient['amount']
 
-        response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = ('attachment; '
-                                           'filename="shopping_cart.txt"')
-
-        for item, amount in shopping_cart.items():
-            response.write(f'{item}, - {amount}\n')
-
-        return response
+        return self.create_shopping_cart_file(shopping_cart)
 
 
 class ProfileViewSet(UserViewSet):
@@ -152,14 +155,27 @@ class ProfileViewSet(UserViewSet):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            list_serializer = SubscriptionListSerializer(
+                author,
+                context={'request': request}
+            )
+            return Response(
+                list_serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         subscription = Subscription.objects.filter(
             user=request.user.id,
             author=author
         )
-        subscription.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        deleted = subscription.delete()[0]
+        if deleted:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'errors': 'Объекта для удаления не существует'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         detail=False,
