@@ -30,7 +30,7 @@ services:
     image: nginx:1.19.3
     env_file: ../.env
     depends_on:
-      - db
+      - backend
     ports:
       - "8080:80"
     volumes:

@@ -133,6 +133,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         for tag in tags:
             recipe.tags.add(tag)
 
+    def validate(self, data):
+        ingredients = data['ingredients']
+        for ingredient in ingredients:
+            amount = ingredient['amount']
+            if amount <= 0:
+                raise serializers.ValidationError(
+                    'Количество ингредиентов не может быть отрицательным'
+                )
+        return data
+
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
